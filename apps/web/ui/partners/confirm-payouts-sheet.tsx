@@ -13,10 +13,6 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import {
-  calculatePayoutFeeForMethod,
-  STRIPE_PAYMENT_METHODS,
-} from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -66,12 +62,16 @@ import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
 import { PartnerRowItem } from "./partner-row-item";
 
-type SelectPaymentMethod =
-  (typeof STRIPE_PAYMENT_METHODS)[keyof typeof STRIPE_PAYMENT_METHODS] & {
-    id: string;
-    fee: number;
-    fastSettlement: boolean;
-  };
+type SelectPaymentMethod = {
+  id: string;
+  type: string;
+  label: string;
+  title: string;
+  duration: string;
+  icon: React.ComponentType<{ className?: string }>;
+  fee: number;
+  fastSettlement: boolean;
+};
 
 function ConfirmPayoutsSheetContent() {
   const router = useRouter();
@@ -228,16 +228,14 @@ function ConfirmPayoutsSheetContent() {
     if (!paymentMethods) return undefined;
 
     const methods = paymentMethods.flatMap((pm) => {
-      const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
-
       const base = {
-        ...paymentMethod,
+        type: pm.type,
+        label: capitalize(pm.type.replaceAll("_", " ")) ?? pm.type,
+        duration: "2-5 business days",
+        icon: CircleArrowRight,
         id: pm.id,
         fastSettlement: false,
-        fee: calculatePayoutFeeForMethod({
-          paymentMethod: pm.type,
-          payoutFee,
-        }),
+        fee: payoutFee ?? 0,
       };
 
       if (pm.link) {
@@ -254,11 +252,11 @@ function ConfirmPayoutsSheetContent() {
         };
       }
 
-      if (paymentMethod.type === "us_bank_account") {
+      if (pm.us_bank_account) {
         const methods = [
           {
             ...base,
-            title: `ACH **** ${pm[paymentMethod.type]?.last4}`,
+            title: `ACH **** ${pm.us_bank_account.last4}`,
           },
         ];
 
@@ -266,7 +264,7 @@ function ConfirmPayoutsSheetContent() {
           methods.unshift({
             ...base,
             id: `${pm.id}-fast`,
-            title: `Fast ACH **** ${pm[paymentMethod.type]?.last4}`,
+            title: `Fast ACH **** ${pm.us_bank_account.last4}`,
             duration: "2 business days",
             fastSettlement: true,
           });
@@ -277,7 +275,7 @@ function ConfirmPayoutsSheetContent() {
 
       return {
         ...base,
-        title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+        title: capitalize(pm.type.replaceAll("_", " ")) ?? pm.type,
       };
     });
 

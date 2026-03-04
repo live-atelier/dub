@@ -1,7 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
 import { Invoice, Project, RegisteredDomain } from "@dub/prisma/client";
 import { log } from "@dub/utils";
@@ -127,25 +126,11 @@ export async function GET(req: Request) {
       invoices.push(invoice);
     }
 
-    // Create payment intent for each invoice
     for (const invoice of invoices) {
       const { workspace } = groupedByWorkspace[invoice.workspaceId];
-
-      if (!workspace.stripeId) {
-        console.log(`Workspace ${workspace.id} has no stripeId, skipping...`);
-        continue;
-      }
-
-      const res = await createPaymentIntent({
-        stripeId: workspace.stripeId!,
-        amount: invoice.total,
-        invoiceId: invoice.id,
-        statementDescriptor: "Dub",
-        description: `Domain renewal invoice (${invoice.id})`,
-        idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
-      });
-
-      console.log(`Payment intent created for invoice ${invoice.id}`, res);
+      console.log(
+        `Payment processing not available for invoice ${invoice.id} in workspace ${workspace.id}.`,
+      );
     }
 
     return NextResponse.json("OK");

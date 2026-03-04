@@ -1,5 +1,3 @@
-import { stripe } from "@/lib/stripe";
-import Stripe from "stripe";
 import * as z from "zod/v4";
 
 export const bankAccountSchema = z
@@ -20,15 +18,10 @@ export const bankAccountSchema = z
   })
   .nullable();
 
-export const getPartnerBankAccount = async (stripeAccount: string) => {
-  const externalAccounts = (await stripe.accounts.listExternalAccounts(
-    stripeAccount,
-    {
-      object: "bank_account",
-    },
-  )) as Stripe.ApiList<Stripe.BankAccount>;
+export type BankAccount = z.infer<typeof bankAccountSchema>;
 
-  return externalAccounts.data.length > 0
-    ? bankAccountSchema.parse(externalAccounts.data[0])
-    : null;
+export const getPartnerBankAccount = async (
+  _stripeAccount: string,
+): Promise<BankAccount> => {
+  return null;
 };

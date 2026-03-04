@@ -1,14 +1,11 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
-import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
+import { FAST_ACH_FEE_CENTS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { stripe } from "@/lib/stripe";
-import { createFxQuote } from "@/lib/stripe/create-fx-quote";
-import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@dub/prisma";
@@ -25,11 +22,6 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
-
-const nonUsdPaymentMethodTypes = {
-  sepa_debit: "eur",
-  acss_debit: "cad",
-} as const;
 
 interface ProcessPayoutsProps {
   workspace: Pick<
@@ -143,20 +135,13 @@ export async function processPayouts({
   const totalPayoutAmount =
     totalInternalPayoutAmount + totalExternalPayoutAmount;
 
-  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+  const payoutFee = workspace.payoutFee;
 
-  const payoutFee = calculatePayoutFeeForMethod({
-    paymentMethod: paymentMethod.type,
-    payoutFee: workspace.payoutFee,
-  });
-
-  if (!payoutFee) {
+  if (payoutFee == null) {
     throw new Error("Failed to calculate payout fee.");
   }
 
-  console.info(
-    `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
-  );
+  console.info(`Using payout fee of ${payoutFee}.`);
 
   const {
     fee: invoiceFee,
@@ -196,60 +181,8 @@ export async function processPayouts({
     },
   });
 
-  let totalToCharge = invoiceTotal - totalExternalPayoutAmount;
-  const currency = nonUsdPaymentMethodTypes[paymentMethod.type] || "usd";
-
-  // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
-  if (Object.keys(nonUsdPaymentMethodTypes).includes(paymentMethod.type)) {
-    const fxQuote = await createFxQuote({
-      fromCurrency: currency,
-      toCurrency: "usd",
-    });
-
-    const exchangeRate = fxQuote.rates[currency].exchange_rate;
-
-    // if Stripe's FX rate is not available, throw an error
-    if (!exchangeRate || exchangeRate <= 0) {
-      throw new Error(
-        `Failed to get exchange rate from Stripe for ${currency}.`,
-      );
-    }
-
-    const convertedTotal = Math.round(
-      (totalToCharge / exchangeRate) * (1 + FOREX_MARKUP_RATE),
-    );
-
-    console.log(
-      `Currency conversion: ${totalToCharge} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
-    );
-
-    totalToCharge = convertedTotal;
-  }
-
-  await stripe.paymentIntents.create(
-    {
-      amount: totalToCharge,
-      customer: workspace.stripeId!,
-      payment_method_types: [paymentMethod.type],
-      payment_method: paymentMethod.id,
-      ...(paymentMethod.type === "us_bank_account" && {
-        payment_method_options: {
-          us_bank_account: {
-            preferred_settlement_speed:
-              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
-          },
-        },
-      }),
-      currency,
-      confirmation_method: "automatic",
-      confirm: true,
-      transfer_group: invoice.id,
-      statement_descriptor: "Dub Partners",
-      description: `Dub Partners payout invoice (${invoice.id})`,
-    },
-    {
-      idempotencyKey: `process-payout-invoice/${invoice.id}`,
-    },
+  console.log(
+    `Skipping Stripe charge for invoice ${invoice.id} (payment method ${paymentMethodId}) because Stripe processing is not available.`,
   );
 
   const { users } = await prisma.project.update({
@@ -281,7 +214,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) processed a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 

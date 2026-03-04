@@ -7,12 +7,33 @@ import {
   CardVisa,
   CreditCard,
   GreekTemple,
-  StripeLink,
 } from "@dub/ui/icons";
 import { capitalize } from "@dub/utils";
-import { Stripe } from "stripe";
 
-export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
+export type PaymentMethodType = string;
+
+export interface PaymentMethod {
+  type: PaymentMethodType;
+  card?: {
+    brand: string;
+    last4: string;
+  };
+  us_bank_account?: {
+    last4: string;
+  };
+  acss_debit?: {
+    last4: string;
+  };
+  sepa_debit?: {
+    last4: string;
+  };
+  link?: {
+    email?: string | null;
+  };
+  [key: string]: unknown;
+}
+
+export const PaymentMethodTypesList = (paymentMethod?: PaymentMethod) =>
   [
     {
       type: "card",
@@ -57,14 +78,14 @@ export const PaymentMethodTypesList = (paymentMethod?: Stripe.PaymentMethod) =>
     {
       type: "link",
       title: "Link",
-      icon: StripeLink,
+      icon: CreditCard,
       iconBgColor: "bg-green-100",
       description: paymentMethod?.link
         ? `Account with ${paymentMethod.link?.email}`
         : "No Link account connected",
     },
   ] satisfies {
-    type: Stripe.PaymentMethod.Type;
+    type: PaymentMethodType;
     title: string;
     icon: React.ElementType;
     description: string;

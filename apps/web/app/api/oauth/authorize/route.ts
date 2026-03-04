@@ -6,7 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
-import { SHOPIFY_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/oauth/authorize - approve OAuth authorization request
@@ -46,9 +46,7 @@ export const POST = withWorkspace(async ({ session, req, workspace }) => {
   });
 
   if (
-    [STRIPE_INTEGRATION_ID, SHOPIFY_INTEGRATION_ID].includes(
-      app.integrationId,
-    ) &&
+    [SHOPIFY_INTEGRATION_ID].includes(app.integrationId) &&
     (workspace.plan === "free" || workspace.plan === "pro")
   ) {
     throw new DubApiError({

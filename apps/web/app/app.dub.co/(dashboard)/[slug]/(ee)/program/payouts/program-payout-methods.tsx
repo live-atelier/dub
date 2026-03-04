@@ -1,6 +1,5 @@
 "use client";
 
-import { STRIPE_PAYMENT_METHODS } from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWebhooks from "@/lib/swr/use-webhooks";
@@ -50,10 +49,6 @@ export function ProgramPayoutMethods() {
 
     // Take only the first payment method (ACH if configured, otherwise card)
     const pm = paymentMethods[0];
-    const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
-
-    if (!paymentMethod) return [];
-
     let title = "";
     let details = "";
 
@@ -77,8 +72,8 @@ export function ProgramPayoutMethods() {
       title = "SEPA Debit";
       details = `Account ending in ••••${pm.sepa_debit.last4}`;
     } else {
-      title = paymentMethod.label;
-      details = `Account ending in ••••${pm[paymentMethod.type]?.last4 || "****"}`;
+      title = capitalize(pm.type.replace(/_/g, " ")) ?? pm.type;
+      details = "Connected payout method";
     }
 
     return [
@@ -86,7 +81,7 @@ export function ProgramPayoutMethods() {
         id: pm.id,
         title,
         details,
-        icon: paymentMethod.icon,
+        icon: MoneyBill,
         type: "connected",
       },
     ];

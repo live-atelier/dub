@@ -1,8 +1,6 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
-import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
-import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { redis } from "@/lib/upstash";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -38,21 +36,7 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
     }
 
     try {
-      if (partner.defaultPayoutMethod === "connect") {
-        await createStripeTransfer({
-          partnerId: partner.id,
-          forceWithdrawal: true,
-        });
-        return;
-      }
-
-      if (partner.defaultPayoutMethod === "stablecoin") {
-        await createStablecoinPayout({
-          partnerId: partner.id,
-          forceWithdrawal: true,
-        });
-        return;
-      }
+      throw new Error("Payout method not supported");
     } finally {
       await redis.del(lockKey);
     }

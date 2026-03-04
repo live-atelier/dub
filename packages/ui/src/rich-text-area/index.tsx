@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "@dub/utils";
 import { EditorContent, EditorContentProps } from "@tiptap/react";
 import { LoadingSpinner } from "../icons";

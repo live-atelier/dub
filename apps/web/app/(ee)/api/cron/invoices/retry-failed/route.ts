@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
@@ -63,21 +62,10 @@ export async function POST(req: Request) {
       return new Response(`Only domain renewals can be retried at this time.`);
     }
 
-    if (!invoice.workspace.stripeId) {
-      console.log(`Workspace ${invoice.workspace.id} has no stripeId.`);
-      return new Response(`Workspace ${invoice.workspace.id} has no stripeId.`);
-    }
-
-    await createPaymentIntent({
-      stripeId: invoice.workspace.stripeId,
-      amount: invoice.total,
-      invoiceId: invoice.id,
-      statementDescriptor: "Dub",
-      description: `Domain renewal invoice (${invoice.id})`,
-      idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
-    });
-
-    return new Response(`Retrying invoice charge ${invoice.id}...`);
+    console.log(
+      `Payment processing not available for failed invoice ${invoice.id}.`,
+    );
+    return new Response("Payment processing not available");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

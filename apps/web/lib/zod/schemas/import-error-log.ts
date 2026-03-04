@@ -14,7 +14,6 @@ export const importErrorLogSchema = z.object({
     "CUSTOMER_EMAIL_NOT_FOUND",
     "LEAD_NOT_FOUND",
     "CLICK_NOT_FOUND",
-    "STRIPE_CUSTOMER_NOT_FOUND",
     "TRANSACTION_NOT_FOUND",
     "SELF_REFERRAL",
     "NOT_SUPPORTED_UNIT",

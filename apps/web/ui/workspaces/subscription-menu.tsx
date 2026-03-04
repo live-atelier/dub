@@ -10,7 +10,6 @@ import {
   LoadingSpinner,
   Popover,
   SquareXmark,
-  StripeIcon,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
@@ -82,7 +81,6 @@ export default function SubscriptionMenu() {
           <Command tabIndex={0} loop className="pointer-events-auto">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
               <MenuItem
-                icon={StripeIcon}
                 label="Open billing portal"
                 onSelect={() => openBillingPortal(false)}
                 disabledTooltip={permissionsError}
@@ -122,7 +120,7 @@ function MenuItem({
   onSelect,
   disabledTooltip,
 }: {
-  icon: Icon;
+  icon?: Icon;
   label: string;
   onSelect: () => void;
   disabledTooltip?: string | boolean;
@@ -139,7 +137,9 @@ function MenuItem({
         )}
         onSelect={disabledTooltip ? undefined : onSelect}
       >
-        <IconComp className="size-4 shrink-0 text-neutral-700" />
+        {IconComp ? (
+          <IconComp className="size-4 shrink-0 text-neutral-700" />
+        ) : null}
         {label}
       </Command.Item>
     </DynamicTooltipWrapper>

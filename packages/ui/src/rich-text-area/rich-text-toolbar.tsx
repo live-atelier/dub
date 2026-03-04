@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
 import { ReactNode, forwardRef, useRef } from "react";

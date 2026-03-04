@@ -56,14 +56,6 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    if (!workspace.stripeConnectId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
-    }
-
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
@@ -132,7 +124,7 @@ export const POST = withWorkspace(
 
     try {
       const discountCode = await createDiscountCode({
-        stripeConnectId: workspace.stripeConnectId,
+        stripeConnectId: workspace.stripeConnectId ?? "",
         partner: programEnrollment.partner,
         link,
         discount,
@@ -162,7 +154,7 @@ export const POST = withWorkspace(
         code: "bad_request",
         message:
           error.code === "more_permissions_required_for_application"
-            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
+            ? "Your connected payment account doesn't have the permissions needed to create discount codes."
             : error.message,
       });
     }

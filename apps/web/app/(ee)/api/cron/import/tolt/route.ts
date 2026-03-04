@@ -6,7 +6,6 @@ import { importCustomers } from "@/lib/tolt/import-customers";
 import { importLinks } from "@/lib/tolt/import-links";
 import { importPartners } from "@/lib/tolt/import-partners";
 import { toltImportPayloadSchema } from "@/lib/tolt/schemas";
-import { updateStripeCustomers } from "@/lib/tolt/update-stripe-customers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +33,6 @@ export async function POST(req: Request) {
         break;
       case "import-commissions":
         await importCommissions(payload);
-        break;
-      case "update-stripe-customers":
-        await updateStripeCustomers(payload);
         break;
       case "cleanup-partners":
         await cleanupPartners(payload);

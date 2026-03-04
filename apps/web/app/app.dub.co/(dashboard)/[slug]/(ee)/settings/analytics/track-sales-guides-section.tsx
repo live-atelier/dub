@@ -3,7 +3,6 @@
 import useGuide from "@/lib/swr/use-guide";
 import { GuideActionButton } from "@/ui/guides/guide-action-button";
 import { GuideSelector } from "@/ui/guides/guide-selector";
-import { InstallStripeIntegrationButton } from "@/ui/guides/install-stripe-integration-button";
 import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useSelectedGuide } from "./use-selected-guide";
@@ -32,9 +31,6 @@ export function TrackSalesGuidesSection() {
   } else if (guideMarkdown) {
     content = (
       <div className="space-y-6">
-        {selectedGuide.key.startsWith("stripe") && (
-          <InstallStripeIntegrationButton />
-        )}
         <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>
       </div>
     );

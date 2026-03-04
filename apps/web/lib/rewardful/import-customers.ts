@@ -163,7 +163,7 @@ async function createCustomer({
   ) {
     await logImportError({
       ...commonImportLogInputs,
-      code: "STRIPE_CUSTOMER_NOT_FOUND",
+      code: "CUSTOMER_NOT_FOUND",
       message: `No Stripe customer ID provided for referral ${referralId}.`,
     });
 

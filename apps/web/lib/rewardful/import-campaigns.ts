@@ -6,20 +6,10 @@ import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { getRewardAmount } from "../partners/get-reward-amount";
-import { stripeAppClient } from "../stripe";
-import {
-  DubDiscountAttributes,
-  stripeCouponToDubDiscount,
-  validateStripeCouponForDubDiscount,
-} from "../stripe/coupon-discount-converter";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
@@ -29,11 +19,6 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       id: programId,
     },
     include: {
-      workspace: {
-        select: {
-          stripeConnectId: true,
-        },
-      },
       groups: {
         where: {
           slug: DEFAULT_PARTNER_GROUP.slug,
@@ -162,44 +147,14 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       );
     }
 
-    // Note: Interestingly, Rewardful's API can sometimes return `stripe_coupon_id: null`
-    // even when the campaign has a valid Stripe coupon. In these cases we'd need to manually recreate the discount on Dub.
     if (!createdGroup.discountId && campaign.stripe_coupon_id) {
-      let dubDiscountAttrs: DubDiscountAttributes | undefined;
-
-      if (program.workspace.stripeConnectId) {
-        try {
-          const stripeCoupon = await stripe.coupons.retrieve(
-            campaign.stripe_coupon_id,
-            {
-              stripeAccount: program.workspace.stripeConnectId,
-            },
-          );
-
-          // Validate the Stripe coupon can be converted to a Dub discount
-          const validation = validateStripeCouponForDubDiscount(stripeCoupon);
-          if (validation.isValid) {
-            // Convert Stripe coupon to Dub discount attributes
-            dubDiscountAttrs = stripeCouponToDubDiscount(stripeCoupon);
-          } else {
-            console.error(
-              `Invalid Stripe coupon ${campaign.stripe_coupon_id}: ${validation.errors.join(", ")}`,
-            );
-          }
-        } catch (error) {
-          console.error(
-            `Error retrieving Stripe coupon ${campaign.stripe_coupon_id}: ${error}`,
-          );
-        }
-      }
-
       const createdDiscount = await prisma.discount.create({
         data: {
           id: createId({ prefix: "disc_" }),
           programId,
-          amount: dubDiscountAttrs?.amount ?? 0,
-          type: dubDiscountAttrs?.type ?? "percentage",
-          maxDuration: dubDiscountAttrs?.maxDuration ?? null,
+          amount: 0,
+          type: "percentage",
+          maxDuration: null,
           couponId: campaign.stripe_coupon_id,
           // connect the discount to the group
           partnerGroup: {

@@ -169,13 +169,10 @@ async function createCommission({
 
   const { sale } = commission;
 
-  if (
-    !sale.referral.stripe_customer_id ||
-    !sale.referral.stripe_customer_id.startsWith("cus_")
-  ) {
+  if (!sale.referral.stripe_customer_id) {
     await logImportError({
       ...commonImportLogInputs,
-      code: "STRIPE_CUSTOMER_NOT_FOUND",
+      code: "CUSTOMER_NOT_FOUND",
       message: `No Stripe customer ID provided for referral ${sale.referral.id}`,
     });
 

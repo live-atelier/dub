@@ -4,7 +4,6 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
-import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -245,10 +244,6 @@ const updatedComplianceFieldsChecks = async ({
       to: input.profileType as PartnerProfileType,
       changedAt: new Date(),
     });
-  }
-
-  if (partner.stripeConnectId) {
-    await stripe.accounts.del(partner.stripeConnectId);
   }
 
   await prisma.partner.update({

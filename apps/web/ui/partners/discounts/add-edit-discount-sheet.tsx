@@ -16,9 +16,8 @@ import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, InfoTooltip, Sheet, Switch } from "@dub/ui";
-import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
+import { CircleCheckFill, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -33,7 +32,6 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
-import { STRIPE_ERROR_MAP } from "../constants";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 
 interface DiscountSheetProps {
@@ -48,12 +46,12 @@ export const useAddEditDiscountForm = () => useFormContext<FormData>();
 
 const COUPON_CREATION_OPTIONS = [
   {
-    label: "New Stripe coupon",
+    label: "New coupon",
     description: "Create a new coupon",
     useExisting: false,
   },
   {
-    label: "Use Stripe coupon ID",
+    label: "Use coupon ID",
     description: "Use an existing coupon",
     useExisting: true,
   },
@@ -72,7 +70,7 @@ function DiscountSheetContent({
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(false);
 
-  const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
+  const [useTestCouponId, setUseTestCouponId] = useState(
     Boolean(discount?.couponTestId),
   );
 
@@ -121,27 +119,6 @@ function DiscountSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        if (error.serverError) {
-          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
-            error.serverError!.startsWith(key),
-          );
-
-          if (code) {
-            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
-            const message = error.serverError!.replace(`${code}: `, "");
-
-            toast.custom(() => (
-              <UpgradeRequiredToast
-                title={title}
-                message={message}
-                ctaLabel={ctaLabel}
-                ctaUrl={ctaUrl}
-              />
-            ));
-            return;
-          }
-        }
-
         toast.error(error.serverError);
       },
     },
@@ -256,7 +233,7 @@ function DiscountSheetContent({
                     </label>
                     <div className="">
                       <select className="block w-full rounded-md border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500">
-                        <option value="stripe">Stripe</option>
+                        <option value="default">Default</option>
                       </select>
                     </div>
                   </div>
@@ -313,7 +290,7 @@ function DiscountSheetContent({
                           className="flex items-center space-x-2"
                         >
                           <h2 className="text-sm font-medium text-neutral-900">
-                            Stripe coupon ID
+                            Coupon ID
                           </h2>
                         </label>
                         <div className="mt-2">
@@ -331,31 +308,31 @@ function DiscountSheetContent({
                       <div className="flex items-center gap-3">
                         <Switch
                           fn={() => {
-                            setUseStripeTestCouponId(!useStripeTestCouponId);
+                            setUseTestCouponId(!useTestCouponId);
                             setValue("couponTestId", "");
                           }}
-                          checked={useStripeTestCouponId}
+                          checked={useTestCouponId}
                           trackDimensions="w-8 h-4"
                           thumbDimensions="w-3 h-3"
                           thumbTranslate="translate-x-4"
                         />
                         <div className="flex items-center gap-2">
                           <h3 className="text-sm font-medium text-neutral-800">
-                            Use Stripe test coupon ID
+                            Use test coupon ID
                           </h3>
 
-                          <InfoTooltip content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
+                          <InfoTooltip content="Enabling this lets you test your coupon code before going live by entering a test coupon ID." />
                         </div>
                       </div>
 
-                      {useStripeTestCouponId && (
+                      {useTestCouponId && (
                         <div>
                           <label
                             htmlFor="couponTestId"
                             className="flex items-center space-x-2"
                           >
                             <h2 className="text-sm font-medium text-neutral-900">
-                              Stripe test coupon ID
+                              Test coupon ID
                             </h2>
                           </label>
                           <div className="mt-2">
@@ -384,7 +361,7 @@ function DiscountSheetContent({
             )}
             title={
               <>
-                <StripeIcon className="size-7" />
+                <Tag className="size-7" />
                 <span className="leading-relaxed">
                   Discount a{" "}
                   <InlineBadgePopover

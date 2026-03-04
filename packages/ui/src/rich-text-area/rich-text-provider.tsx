@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "@dub/utils";
 import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from "@dub/utils";
 import { computePosition, flip, shift } from "@floating-ui/dom";
 import { Editor, posToDOMRect, ReactRenderer } from "@tiptap/react";

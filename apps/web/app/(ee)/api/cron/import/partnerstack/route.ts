@@ -6,7 +6,6 @@ import { importGroups } from "@/lib/partnerstack/import-groups";
 import { importLinks } from "@/lib/partnerstack/import-links";
 import { importPartners } from "@/lib/partnerstack/import-partners";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
-import { updateStripeCustomers } from "@/lib/partnerstack/update-stripe-customers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -37,9 +36,6 @@ export async function POST(req: Request) {
         break;
       case "import-commissions":
         await importCommissions(payload);
-        break;
-      case "update-stripe-customers":
-        await updateStripeCustomers(payload);
         break;
       default:
         throw new Error(`Unknown action: ${payload.action}`);

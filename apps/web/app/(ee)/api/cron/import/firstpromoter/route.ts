@@ -5,7 +5,6 @@ import { importCommissions } from "@/lib/firstpromoter/import-commissions";
 import { importCustomers } from "@/lib/firstpromoter/import-customers";
 import { importPartners } from "@/lib/firstpromoter/import-partners";
 import { firstPromoterImportPayloadSchema } from "@/lib/firstpromoter/schemas";
-import { updateStripeCustomers } from "@/lib/firstpromoter/update-stripe-customers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -33,9 +32,6 @@ export async function POST(req: Request) {
         break;
       case "import-commissions":
         await importCommissions(payload);
-        break;
-      case "update-stripe-customers":
-        await updateStripeCustomers(payload);
         break;
       default:
         throw new Error(`Unknown action: ${payload.action}`);

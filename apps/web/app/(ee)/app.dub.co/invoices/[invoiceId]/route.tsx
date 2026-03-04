@@ -1,8 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { DomainRenewalInvoice } from "./domain-renewal-invoice";
-import { PartnerPayoutInvoice } from "./partner-payout-invoice";
 
 export const dynamic = "force-dynamic";
 
@@ -51,16 +49,9 @@ export const GET = withSession(async ({ session, params }) => {
 
   let pdf: Buffer | null = null;
 
-  if (invoice.type === "partnerPayout") {
-    pdf = await PartnerPayoutInvoice({
-      invoice,
-      workspace: invoice.workspace,
-    });
-  } else if (invoice.type === "domainRenewal") {
-    pdf = await DomainRenewalInvoice({
-      invoice,
-      workspace: invoice.workspace,
-    });
+  if (invoice.type === "partnerPayout" || invoice.type === "domainRenewal") {
+    // Invoice PDF generation not available (Stripe removed)
+    pdf = null;
   }
 
   if (!pdf) {

@@ -1,5 +1,3 @@
-import { stripe } from "@/lib/stripe";
-import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
 import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 
@@ -24,25 +22,8 @@ export async function recomputePartnerPayoutState(
     | "defaultPayoutMethod"
   >,
 ) {
-  const [connectAccount, stablecoinAccount] = await Promise.all([
-    partner.stripeConnectId
-      ? stripe.accounts.retrieve(partner.stripeConnectId)
-      : Promise.resolve(null),
-
-    partner.stripeRecipientId
-      ? getStripeRecipientAccount(partner.stripeRecipientId)
-      : Promise.resolve(null),
-  ]);
-
-  const connectActive = Boolean(
-    connectAccount?.payouts_enabled === true &&
-      connectAccount?.capabilities?.transfers === "active",
-  );
-
-  const stablecoinActive = Boolean(
-    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
-      ?.status === "active",
-  );
+  const connectActive = false;
+  const stablecoinActive = false;
 
   const paypalActive = Boolean(partner.paypalEmail);
 

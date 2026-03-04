@@ -1,5 +1,11 @@
-import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
+
+type PaymentMethodType =
+  | "card"
+  | "link"
+  | "us_bank_account"
+  | "acss_debit"
+  | "sepa_debit";
 
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
@@ -19,7 +25,7 @@ export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
-  type: Stripe.PaymentMethod.Type;
+  type: PaymentMethodType;
   location: string;
   title: string;
   icon: string;
@@ -58,25 +64,17 @@ export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   },
 ];
 
-export const DIRECT_DEBIT_PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
+export const DIRECT_DEBIT_PAYMENT_METHOD_TYPES: string[] = [
   "us_bank_account",
   "acss_debit",
   "sepa_debit",
 ];
 
-export const PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
+export const PAYMENT_METHOD_TYPES: string[] = [
   "card",
   "link",
   ...DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
 ];
-
-export const STRIPE_PAYMENT_METHOD_NORMALIZATION = {
-  card: "card",
-  link: "card",
-  us_bank_account: "ach",
-  acss_debit: "acss",
-  sepa_debit: "sepa",
-} as const;
 
 export const INVOICE_PAYMENT_METHODS = Object.freeze({
   card: {

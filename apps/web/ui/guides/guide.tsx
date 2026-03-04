@@ -5,7 +5,6 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { GuideActionButton } from "./guide-action-button";
-import { InstallStripeIntegrationButton } from "./install-stripe-integration-button";
 import { guides, IntegrationType } from "./integrations";
 import { GuidesMarkdown } from "./markdown";
 
@@ -54,10 +53,6 @@ export function Guide({ markdown }: { markdown: string }) {
         </div>
 
         <div className="space-y-6 rounded-2xl bg-white p-0 shadow-none">
-          {selectedGuide.type === "track-sale" &&
-            selectedGuide.key.startsWith("stripe") && (
-              <InstallStripeIntegrationButton />
-            )}
           <GuidesMarkdown>{markdown}</GuidesMarkdown>
 
           <Link

@@ -1,13 +1,13 @@
 "use client";
 
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
-import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
 import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 
 export function UpgradePlanButton({
@@ -26,7 +26,6 @@ export function UpgradePlanButton({
   const {
     slug: workspaceSlug,
     plan: currentPlan,
-    stripeId,
     defaultProgramId,
   } = useWorkspace();
 
@@ -69,14 +68,12 @@ export function UpgradePlanButton({
     })
       .then(async (res) => {
         plausible("Opened Checkout");
-        if (!stripeId || currentPlan === "free") {
-          const data = await res.json();
-          const { id: sessionId } = data;
-          const stripe = await getStripe();
-          stripe?.redirectToCheckout({ sessionId });
-        } else {
-          const { url } = await res.json();
+        const { url } = await res.json();
+
+        if (url) {
           router.push(url);
+        } else {
+          toast.error("Unable to open checkout.");
         }
       })
       .catch((err) => {

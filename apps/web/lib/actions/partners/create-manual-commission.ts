@@ -1,7 +1,6 @@
 "use server";
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { getCustomerStripeInvoices } from "@/lib/api/customers/get-customer-stripe-invoices";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -154,116 +153,8 @@ export const createManualCommissionAction = authActionClient
     let lastLeadAt: Date | undefined = undefined;
     let lastConversionAt: Date | undefined = undefined;
 
-    // If we're using existing events (Stripe invoice for sale)
     if (useExistingEvents) {
-      if (commissionType !== "sale") {
-        throw new Error(
-          "You can only use existing events for recurring sale commissions.",
-        );
-      }
-
-      if (!workspace.stripeConnectId) {
-        throw new Error(
-          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-        );
-      }
-
-      if (!customer.stripeCustomerId) {
-        throw new Error(
-          `Customer ${customer.id} doesn't have a Stripe customer ID. Add one in the customer profile before proceeding.`,
-        );
-      }
-
-      const stripeCustomerInvoices = await getCustomerStripeInvoices({
-        stripeCustomerId: customer.stripeCustomerId,
-        stripeConnectId: workspace.stripeConnectId,
-        programId,
-      }).then((invoices) =>
-        invoices
-          // filter out invoices that are already associated with a commission on Dub
-          .filter((invoice) => !invoice.dubCommissionId)
-          // sort invoices by created date ascending
-          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
-      );
-
-      if (stripeCustomerInvoices.length === 0) {
-        throw new Error(
-          `No unimported Stripe invoices found for customer ${customer.email} (${customer.stripeCustomerId}).`,
-        );
-      }
-
-      // use the first ever stripe invoice created date as the last lead and conversion dates
-      lastLeadAt = stripeCustomerInvoices[0].createdAt;
-      lastConversionAt = stripeCustomerInvoices[0].createdAt;
-
-      clickId = nanoid(16);
-      clickedAt = new Date(lastLeadAt.getTime() - 5 * 60 * 1000);
-
-      const generatedClickEvent = recordClickZodSchema.parse({
-        timestamp: clickedAt.toISOString(),
-        identity_hash: customer.externalId || customer.id,
-        click_id: clickId,
-        link_id: link.id,
-        url: link.url,
-        ip: "127.0.0.1",
-        continent: customer.country
-          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || ""
-          : "",
-      });
-
-      tbEventsToRecord.push(() => recordClickZod(generatedClickEvent));
-
-      const leadEventData = leadEventSchemaTBWithTimestamp.parse({
-        ...generatedClickEvent,
-        event_id: nanoid(16),
-        event_name: "Sign up",
-        customer_id: customer.id,
-        timestamp: lastLeadAt.toISOString(),
-      });
-
-      tbEventsToRecord.push(() => recordLeadWithTimestamp(leadEventData));
-
-      const saleEventData = stripeCustomerInvoices.map((invoice) =>
-        saleEventSchemaTBWithTimestamp.parse({
-          ...generatedClickEvent,
-          event_id: nanoid(16),
-          invoice_id: invoice.id,
-          event_name: "Invoice paid",
-          amount: invoice.amount,
-          customer_id: customer.id,
-          payment_processor: "stripe",
-          currency: "usd",
-          timestamp: invoice.createdAt.toISOString(),
-          metadata: JSON.stringify(invoice.metadata),
-        }),
-      );
-
-      tbEventsToRecord.push(() => recordSaleWithTimestamp(saleEventData));
-
-      commissionsToCreate.push(
-        ...saleEventData.map((saleEvent) => ({
-          event: "sale" as const,
-          programId,
-          partnerId,
-          linkId: link.id,
-          customerId: customer.id,
-          eventId: saleEvent.event_id,
-          quantity: 1,
-          amount: saleEvent.amount,
-          currency: saleEvent.currency,
-          invoiceId: saleEvent.invoice_id,
-          createdAt: new Date(saleEvent.timestamp),
-          user,
-          context: {
-            customer: { country: customer.country },
-          },
-        })),
-      );
-      totalSales = saleEventData.length;
-      totalSaleAmount = saleEventData.reduce(
-        (acc, saleEvent) => acc + saleEvent.amount,
-        0,
-      );
+      throw new Error("Using existing events is no longer supported.");
     } else {
       const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
       clickId = nanoid(16);

@@ -12,7 +12,6 @@ import { Shopify } from "@/ui/guides/icons/shopify";
 import { Supabase } from "@/ui/guides/icons/supabase";
 import { Webflow } from "@/ui/guides/icons/webflow";
 import { Wordpress } from "@/ui/guides/icons/wordpress";
-import { StripeIcon } from "@dub/ui/icons";
 
 export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 
@@ -52,7 +51,7 @@ export const sections: {
     type: "track-sale",
     title: "Track sale events",
     description:
-      "Finally, you can use our Stripe integration or server-side SDKs to track sale events (e.g. when a user purchases a product on your application).",
+      "Finally, you can use our server-side SDKs to track sale events (e.g. when a user purchases a product on your application).",
   },
 ];
 
@@ -176,43 +175,6 @@ export const guides: IntegrationGuide[] = [
   },
 
   // Track Sales
-  {
-    type: "track-sale",
-    key: "stripe-checkout",
-    title: "Stripe",
-    subtitle: "Checkout",
-    recommended: true,
-    description: "Stripe Checkout",
-    icon: StripeIcon,
-    iconProps: {
-      fullSize: true,
-    },
-    url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
-  },
-  {
-    type: "track-sale",
-    key: "stripe-payment-links",
-    title: "Stripe",
-    subtitle: "Payment Links",
-    description: "Stripe Payment Links",
-    icon: StripeIcon,
-    iconProps: {
-      fullSize: true,
-    },
-    url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
-  },
-  {
-    type: "track-sale",
-    key: "stripe-customers",
-    title: "Stripe",
-    subtitle: "Customers",
-    description: "Stripe Customers",
-    icon: StripeIcon,
-    iconProps: {
-      fullSize: true,
-    },
-    url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
-  },
   {
     type: "track-sale",
     key: "segment-track-sale",

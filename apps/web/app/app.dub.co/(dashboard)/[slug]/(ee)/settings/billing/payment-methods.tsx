@@ -4,15 +4,17 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Badge, Button, CreditCard, GreekTemple, MoneyBill2 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Stripe } from "stripe";
-import { PaymentMethodTypesList } from "./payment-method-types";
+import {
+  PaymentMethod,
+  PaymentMethodType,
+  PaymentMethodTypesList,
+} from "./payment-method-types";
 
 export default function PaymentMethods() {
   const router = useRouter();
@@ -123,8 +125,8 @@ const PaymentMethodCard = ({
   paymentMethod,
   forPayouts = false,
 }: {
-  type: Stripe.PaymentMethod.Type;
-  paymentMethod?: Stripe.PaymentMethod;
+  type: PaymentMethodType;
+  paymentMethod?: PaymentMethod;
   forPayouts?: boolean;
 }) => {
   const result = PaymentMethodTypesList(paymentMethod);
@@ -170,53 +172,27 @@ const PaymentMethodCard = ({
 };
 
 const NoPartnerPaymentMethods = () => {
-  const { stripeId } = useWorkspace();
-  const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
-    useAddPaymentMethodModal();
-  const { role } = useWorkspace();
-
-  if (!stripeId) {
-    return null;
-  }
-
   return (
-    <>
-      {AddPaymentMethodModal}
-      <RecommendedForPayoutsWrapper recommended={true}>
-        <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
-              )}
-            >
-              <GreekTemple className="size-6 text-neutral-700" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-neutral-900">Bank account</p>
-              </div>
-              <p className="text-sm text-neutral-500">Not connected</p>
-            </div>
+    <RecommendedForPayoutsWrapper recommended={true}>
+      <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-4 drop-shadow-sm">
+        <div className="flex items-center gap-4">
+          <div
+            className={cn(
+              "flex size-12 items-center justify-center rounded-lg bg-neutral-100",
+            )}
+          >
+            <GreekTemple className="size-6 text-neutral-700" />
           </div>
 
-          <Button
-            variant="primary"
-            className="h-9 w-fit"
-            text="Connect"
-            onClick={() => setShowAddPaymentMethodModal(true)}
-            disabledTooltip={
-              clientAccessCheck({
-                action: "billing.write",
-                role,
-                customPermissionDescription: "connect payment methods",
-              }).error || undefined
-            }
-          />
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-medium text-neutral-900">Bank account</p>
+            </div>
+            <p className="text-sm text-neutral-500">Not connected</p>
+          </div>
         </div>
-      </RecommendedForPayoutsWrapper>
-    </>
+      </div>
+    </RecommendedForPayoutsWrapper>
   );
 };
 
