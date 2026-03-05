@@ -1,13 +1,13 @@
 "use server";
 
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
   const linkId = data.get("linkId") as string;
   const password = data.get("password") as string;
 
-  const link = await prismaEdge.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       id: linkId,
     },

@@ -45,3 +45,5 @@ packages/stripe-app/.build/*
 *.csv
 *.ndjson
 .vitest
+
+.sisyphus

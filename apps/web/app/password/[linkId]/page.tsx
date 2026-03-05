@@ -1,6 +1,6 @@
 import { Lock } from "@/ui/shared/icons";
 import { NewBackground } from "@/ui/shared/new-background";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { BlurImage, Wordmark } from "@dub/ui";
 import { constructMetadata, createHref, isDubDomain } from "@dub/utils";
 import { cookies } from "next/headers";
@@ -9,7 +9,7 @@ import { notFound, redirect } from "next/navigation";
 import PasswordForm from "./form";
 
 export const dynamic = "force-dynamic";
-export const runtime = "edge";
+
 
 const title = "Password Required";
 const description =
@@ -20,7 +20,7 @@ export async function generateMetadata(props: {
   params: Promise<{ linkId: string }>;
 }) {
   const params = await props.params;
-  const link = await prismaEdge.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       id: params.linkId,
     },
@@ -59,7 +59,7 @@ export default async function PasswordProtectedLinkPage(props: {
   params: Promise<{ linkId: string }>;
 }) {
   const params = await props.params;
-  const link = await prismaEdge.link.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
       id: params.linkId,
     },
