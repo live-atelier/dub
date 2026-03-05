@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import "server-only";
 import { generateErrorMessage } from "zod-error";
-import { ZodOpenApiResponseObject } from "zod-openapi";
+import type { ZodOpenApiResponseObject } from "zod-openapi";
 import * as z from "zod/v4";
 import { logger } from "../axiom/server";
+import { DubApiError } from "./dub-api-error";
 import { ErrorCode, ErrorCodes } from "./error-codes";
 
 const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
@@ -40,24 +41,7 @@ const ErrorSchema = z.object({
 type ErrorResponse = z.infer<typeof ErrorSchema>;
 export type ErrorCodes = z.infer<typeof ErrorCode>;
 
-export class DubApiError extends Error {
-  public readonly code: z.infer<typeof ErrorCode>;
-  public readonly docUrl?: string;
-
-  constructor({
-    code,
-    message,
-    docUrl,
-  }: {
-    code: z.infer<typeof ErrorCode>;
-    message: string;
-    docUrl?: string;
-  }) {
-    super(message);
-    this.code = code;
-    this.docUrl = docUrl ?? `${docErrorUrl}#${code.replace("_", "-")}`;
-  }
-}
+export { DubApiError } from "./dub-api-error";
 
 const docErrorUrl = "https://dub.co/docs/api-reference/errors";
 

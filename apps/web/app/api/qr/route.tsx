@@ -1,6 +1,7 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { ratelimitOrThrow } from "@/lib/api/utils";
-import { getShortLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors-edge";
+import { ratelimitOrThrow } from "@/lib/api/ratelimit-edge";
+import { getShortLinkViaEdge } from "@/lib/planetscale/get-shortlink-via-edge";
+import { getWorkspaceViaEdge } from "@/lib/planetscale/get-workspace-via-edge";
 import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
