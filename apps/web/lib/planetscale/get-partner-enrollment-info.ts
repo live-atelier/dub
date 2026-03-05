@@ -29,8 +29,7 @@ export const getPartnerEnrollmentInfo = async ({
     };
   }
 
-  const rows = await conn(
-    `SELECT 
+  const rows = await conn`SELECT
       "Partner".id,
       "Partner".name,
       "Partner".image,
@@ -45,9 +44,7 @@ export const getPartnerEnrollmentInfo = async ({
     FROM "ProgramEnrollment"
     LEFT JOIN "Partner" ON "Partner".id = "ProgramEnrollment"."partnerId"
     LEFT JOIN "Discount" ON "Discount".id = "ProgramEnrollment"."discountId"
-    WHERE "ProgramEnrollment"."partnerId" = $1 AND "ProgramEnrollment"."programId" = $2 LIMIT 1`,
-    [partnerId, programId],
-  );
+    WHERE "ProgramEnrollment"."partnerId" = ${partnerId} AND "ProgramEnrollment"."programId" = ${programId} LIMIT 1`;
 
   const result =
     rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;

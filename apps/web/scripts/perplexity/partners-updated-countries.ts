@@ -19,7 +19,7 @@ async function main() {
         not: "US",
       },
       changeHistoryLog: {
-        path: "$[*].from",
+        path: ["$[*].from"],
         array_contains: "US",
       },
       commissions: {

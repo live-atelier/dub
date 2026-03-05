@@ -269,7 +269,7 @@ const processPartnerActivityStreamBatch = () =>
             try {
               // Update program enrollment stats
               if (finalStatsToUpdate.length > 0) {
-                await conn(
+                await conn.query(
                   `UPDATE "ProgramEnrollment" SET ${finalStatsToUpdate
                     .map(([key, _], i) => `"${key}" = $${i + 1}`)
                     .join(", ")} WHERE "programId" = $${finalStatsToUpdate.length + 1} AND "partnerId" = $${finalStatsToUpdate.length + 2}`,

@@ -35,8 +35,7 @@ export const getLinkWithPartner = async ({
   console.time("getLinkWithPartner");
 
   const rows =
-    (await conn(
-      `SELECT 
+    (await conn`SELECT
         "Link".*,
         "Partner".id as "partnerId",
         "Partner".name as "partnerName",
@@ -54,9 +53,7 @@ export const getLinkWithPartner = async ({
        LEFT JOIN "Partner" ON "Partner".id = "ProgramEnrollment"."partnerId"
        LEFT JOIN "Discount" "PartnerDiscount" ON "ProgramEnrollment"."discountId" = "PartnerDiscount".id
        LEFT JOIN "Program" ON "Program".id = "Link"."programId"
-       WHERE "Link".domain = $1 AND "Link"."key" = $2`,
-      [domain, keyToQuery],
-    )) || [];
+       WHERE "Link".domain = ${domain} AND "Link"."key" = ${keyToQuery}`) || [];
 
   console.timeEnd("getLinkWithPartner");
 

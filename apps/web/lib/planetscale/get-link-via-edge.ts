@@ -23,10 +23,7 @@ export const getLinkViaEdge = async ({
       punyEncode(decodeURIComponent(key));
 
   const rows =
-    (await conn('SELECT * FROM "Link" WHERE domain = $1 AND "key" = $2', [
-      domain,
-      keyToQuery,
-    ])) || [];
+    (await conn`SELECT * FROM "Link" WHERE domain = ${domain} AND "key" = ${keyToQuery}`) || [];
 
   const link =
     rows && Array.isArray(rows) && rows.length > 0

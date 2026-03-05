@@ -9,26 +9,25 @@ export const getWorkspaceViaEdge = async ({
   workspaceId: string;
   includeDomains?: boolean;
 }) => {
-  const query = includeDomains
-    ? `
-      SELECT 
-        w.*,
-        d.slug
-      FROM "Project" w
-      LEFT JOIN "Domain" d ON w.id = d."projectId"
-      WHERE w.id = $1
-      LIMIT 100
-    `
-    : `
-      SELECT 
-        w.* 
-      FROM "Project" w 
-      WHERE w.id = $1 
-      LIMIT 1
-    `;
+  const normalizedId = normalizeWorkspaceId(workspaceId);
 
-  const rows =
-    (await conn(query, [normalizeWorkspaceId(workspaceId)])) || [];
+  const rows = includeDomains
+    ? (await conn`
+        SELECT
+          w.*,
+          d.slug
+        FROM "Project" w
+        LEFT JOIN "Domain" d ON w.id = d."projectId"
+        WHERE w.id = ${normalizedId}
+        LIMIT 100
+      `) || []
+    : (await conn`
+        SELECT
+          w.*
+        FROM "Project" w
+        WHERE w.id = ${normalizedId}
+        LIMIT 1
+      `) || [];
 
   if (!rows || !Array.isArray(rows) || rows.length === 0) {
     return null;

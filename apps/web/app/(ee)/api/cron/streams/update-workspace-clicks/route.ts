@@ -107,10 +107,7 @@ const processWorkspaceUpdateStreamBatch = () =>
           const batchPromises = batch.map(async (update) => {
             try {
               // Update the workspace usage and click counts
-              await conn(
-                'UPDATE "Project" SET usage = usage + $1, "totalClicks" = "totalClicks" + $2 WHERE id = $3',
-                [update.clicks, update.clicks, update.workspaceId],
-              );
+              await conn`UPDATE "Project" SET usage = usage + ${update.clicks}, "totalClicks" = "totalClicks" + ${update.clicks} WHERE id = ${update.workspaceId}`;
 
               processedEntryIds.push(...update.entryIds);
 

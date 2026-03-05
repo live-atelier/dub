@@ -190,10 +190,7 @@ export async function recordClick({
 
         // increment the click count for the link (based on their ID)
         // Use the database connection directly (not prismaEdge) because of connection pooling
-        conn(
-          'UPDATE "Link" SET clicks = clicks + 1, "lastClicked" = NOW() WHERE id = $1',
-          [linkId],
-        ),
+        conn`UPDATE "Link" SET clicks = clicks + 1, "lastClicked" = NOW() WHERE id = ${linkId}`,
         // if the link is associated with a workspace + has a destination URL
         // increment the usage count for the workspace
         workspaceId &&
@@ -204,10 +201,7 @@ export async function recordClick({
             timestamp: clickData.timestamp,
           }).catch(() => {
             // Fallback on writing directly to the database
-            return conn(
-              'UPDATE "Project" SET usage = usage + 1, "totalClicks" = "totalClicks" + 1 FROM "Link" WHERE "Project".id = "Link"."projectId" AND "Link".id = $1',
-              [linkId],
-            );
+            return conn`UPDATE "Project" SET usage = usage + 1, "totalClicks" = "totalClicks" + 1 FROM "Link" WHERE "Project".id = "Link"."projectId" AND "Link".id = ${linkId}`;
           }),
 
         programId &&
@@ -219,10 +213,7 @@ export async function recordClick({
             timestamp: new Date().toISOString(),
           }).catch(() => {
             // Fallback on writing directly to the database
-            return conn(
-              'UPDATE "ProgramEnrollment" SET "totalClicks" = "totalClicks" + 1 WHERE "programId" = $1 AND "partnerId" = $2',
-              [programId, partnerId],
-            );
+            return conn`UPDATE "ProgramEnrollment" SET "totalClicks" = "totalClicks" + 1 WHERE "programId" = ${programId} AND "partnerId" = ${partnerId}`;
           }),
       ]);
 
@@ -261,10 +252,7 @@ export async function recordClick({
       // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
       const hasWebhooks = webhookIds && webhookIds.length > 0;
       if (workspaceId && hasWebhooks) {
-        const workspaceRows = await conn(
-          'SELECT usage, "usageLimit" FROM "Project" WHERE id = $1 LIMIT 1',
-          [workspaceId],
-        );
+        const workspaceRows = await conn`SELECT usage, "usageLimit" FROM "Project" WHERE id = ${workspaceId} LIMIT 1`;
 
         const workspaceData =
           workspaceRows.length > 0
@@ -315,9 +303,8 @@ async function sendLinkClickWebhooks({
     return;
   }
 
-  const link = await conn(
-    `
-      SELECT 
+  const link = await conn`
+      SELECT
         l.*,
         COALESCE(json_agg(
           json_build_object('tag', json_build_object('id', t.id, 'name', t.name, 'color', t.color))
@@ -325,11 +312,9 @@ async function sendLinkClickWebhooks({
       FROM "Link" l
       LEFT JOIN "LinkTag" lt ON l.id = lt."linkId"
       LEFT JOIN "Tag" t ON lt."tagId" = t.id
-      WHERE l.id = $1
+      WHERE l.id = ${linkId}
       GROUP BY l.id
-    `,
-    [linkId],
-  ).then((rows) => {
+    `.then((rows) => {
     const row = rows[0] as any;
     // Handle case where there are no tags (json_agg returns [null])
     row.tags = row.tags?.[0] === null ? [] : row.tags;

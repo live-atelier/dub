@@ -21,10 +21,7 @@ export const checkIfKeyExists = async ({
       punyEncode(decodeURIComponent(key));
 
   const rows =
-    (await conn(
-      'SELECT 1 FROM "Link" WHERE domain = $1 AND "key" = $2 LIMIT 1',
-      [domain, keyToQuery],
-    )) || [];
+    (await conn`SELECT 1 FROM "Link" WHERE domain = ${domain} AND "key" = ${keyToQuery} LIMIT 1`) || [];
 
   return rows && Array.isArray(rows) && rows.length > 0;
 };

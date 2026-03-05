@@ -13,9 +13,7 @@ export const getWorkspaceProduct = async (workspaceSlug: string) => {
     }
 
     const rows =
-      (await conn('SELECT * FROM "Project" WHERE slug = $1', [
-        workspaceSlug,
-      ])) || [];
+      (await conn`SELECT * FROM "Project" WHERE slug = ${workspaceSlug}`) || [];
 
     const workspace =
       rows && Array.isArray(rows) && rows.length > 0

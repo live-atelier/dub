@@ -68,7 +68,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ? `SUM(sales) as sales, SUM("saleAmount") as "saleAmount"`
           : `SUM(${event}) as ${event}`;
 
-    const response = await conn(
+    const response = await conn.query(
       `SELECT ${aggregateColumns} FROM "Link" WHERE id IN (${linkIdPlaceholders})`,
       normalizedLinkId.values,
     );
