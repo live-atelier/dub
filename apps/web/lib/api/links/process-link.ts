@@ -6,16 +6,13 @@ import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Project, WorkspaceRole } from "@dub/prisma/client";
 import {
-  DUB_DOMAINS,
   UTMTags,
   constructURLFromUTMParams,
-  getApexDomain,
   getDomainWithoutWWW,
   getUrlFromString,
   isDubDomain,
   isValidUrl,
   parseDateTime,
-  pluralize,
 } from "@dub/utils";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
@@ -197,23 +194,23 @@ export async function processLink<T extends Record<string, any>>({
     // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
   } else if (isDubDomain(domain)) {
     // coerce type with ! cause we already checked if it exists
-    const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getDomainWithoutWWW(url) || "";
-    const apexDomain = getApexDomain(url);
-    if (
-      key !== "_root" &&
-      allowedHostnames &&
-      !allowedHostnames.includes(urlDomain) &&
-      !allowedHostnames.includes(apexDomain)
-    ) {
-      return {
-        link: payload,
-        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the ${pluralize("domain", allowedHostnames.length)} ${allowedHostnames
-          .map((d) => `"${d}"`)
-          .join(", ")}.`,
-        code: "unprocessable_entity",
-      };
-    }
+    // const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
+    // const urlDomain = getDomainWithoutWWW(url) || "";
+    // const apexDomain = getApexDomain(url);
+    // if (
+    //   key !== "_root" &&
+    //   allowedHostnames &&
+    //   !allowedHostnames.includes(urlDomain) &&
+    //   !allowedHostnames.includes(apexDomain)
+    // ) {
+    //   return {
+    //     link: payload,
+    //     error: `Invalid destination URL. You can only create ${domain} short links for URLs with the ${pluralize("domain", allowedHostnames.length)} ${allowedHostnames
+    //       .map((d) => `"${d}"`)
+    //       .join(", ")}.`,
+    //     code: "unprocessable_entity",
+    //   };
+    // }
 
     if (!skipKeyChecks && key?.includes("/")) {
       // check if the workspace has access to the parent link
