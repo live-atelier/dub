@@ -174,9 +174,9 @@ export async function bulkDeletePartners({
   }
 
   if (deletePartners) {
-    // using conn.execute here since Prisma is throwing a weird error
-    const res = await conn.execute(
-      `DELETE FROM Partner WHERE id IN (${partnerIds.map(() => "?").join(",")})`,
+    // using conn here since Prisma is throwing a weird error
+    const res = await conn(
+      `DELETE FROM "Partner" WHERE id IN (${partnerIds.map((_, i) => `$${i + 1}`).join(",")})`,
       partnerIds,
     );
     console.log(JSON.stringify(res, null, 2));

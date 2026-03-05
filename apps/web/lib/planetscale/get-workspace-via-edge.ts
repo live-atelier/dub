@@ -14,21 +14,21 @@ export const getWorkspaceViaEdge = async ({
       SELECT 
         w.*,
         d.slug
-      FROM Project w
-      LEFT JOIN Domain d ON w.id = d.projectId
-      WHERE w.id = ?
+      FROM "Project" w
+      LEFT JOIN "Domain" d ON w.id = d."projectId"
+      WHERE w.id = $1
       LIMIT 100
     `
     : `
       SELECT 
         w.* 
-      FROM Project w 
-      WHERE w.id = ? 
+      FROM "Project" w 
+      WHERE w.id = $1 
       LIMIT 1
     `;
 
-  const { rows } =
-    (await conn.execute(query, [normalizeWorkspaceId(workspaceId)])) || {};
+  const rows =
+    (await conn(query, [normalizeWorkspaceId(workspaceId)])) || [];
 
   if (!rows || !Array.isArray(rows) || rows.length === 0) {
     return null;

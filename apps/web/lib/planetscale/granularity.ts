@@ -19,25 +19,25 @@ export const sqlGranularityMap: Record<
   }
 > = {
   month: {
-    dateFormat: "%Y-%m",
+    dateFormat: "YYYY-MM",
     dateIncrement: (dt) => addMonths(dt, 1),
     startFunction: (dt) => startOfMonth(dt),
     formatString: "yyyy-MM",
   },
   day: {
-    dateFormat: "%Y-%m-%d",
+    dateFormat: "YYYY-MM-DD",
     dateIncrement: (dt) => addDays(dt, 1),
     startFunction: (dt) => startOfDay(dt),
     formatString: "yyyy-MM-dd",
   },
   hour: {
-    dateFormat: "%Y-%m-%d %H:00",
+    dateFormat: "YYYY-MM-DD HH24:00",
     dateIncrement: (dt) => addHours(dt, 1),
     startFunction: (dt) => startOfHour(dt),
     formatString: "yyyy-MM-dd HH:00",
   },
   minute: {
-    dateFormat: "%Y-%m-%d %H:%i",
+    dateFormat: "YYYY-MM-DD HH24:MI",
     dateIncrement: (dt) => addMinutes(dt, 1),
     startFunction: (dt) => startOfMinute(dt),
     formatString: "yyyy-MM-dd HH:mm",

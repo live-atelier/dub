@@ -189,9 +189,9 @@ export async function recordClick({
         recordClickCache.set({ domain, key, identityHash, clickId }),
 
         // increment the click count for the link (based on their ID)
-        // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
-        conn.execute(
-          "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
+        // Use the database connection directly (not prismaEdge) because of connection pooling
+        conn(
+          'UPDATE "Link" SET clicks = clicks + 1, "lastClicked" = NOW() WHERE id = $1',
           [linkId],
         ),
         // if the link is associated with a workspace + has a destination URL
@@ -204,8 +204,8 @@ export async function recordClick({
             timestamp: clickData.timestamp,
           }).catch(() => {
             // Fallback on writing directly to the database
-            return conn.execute(
-              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+            return conn(
+              'UPDATE "Project" SET usage = usage + 1, "totalClicks" = "totalClicks" + 1 FROM "Link" WHERE "Project".id = "Link"."projectId" AND "Link".id = $1',
               [linkId],
             );
           }),
@@ -219,8 +219,8 @@ export async function recordClick({
             timestamp: new Date().toISOString(),
           }).catch(() => {
             // Fallback on writing directly to the database
-            return conn.execute(
-              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
+            return conn(
+              'UPDATE "ProgramEnrollment" SET "totalClicks" = "totalClicks" + 1 WHERE "programId" = $1 AND "partnerId" = $2',
               [programId, partnerId],
             );
           }),
@@ -261,17 +261,14 @@ export async function recordClick({
       // if the link has webhooks enabled, we need to check if the workspace usage has exceeded the limit
       const hasWebhooks = webhookIds && webhookIds.length > 0;
       if (workspaceId && hasWebhooks) {
-        const workspaceRows = await conn.execute(
-          "SELECT usage, usageLimit FROM Project WHERE id = ? LIMIT 1",
+        const workspaceRows = await conn(
+          'SELECT usage, "usageLimit" FROM "Project" WHERE id = $1 LIMIT 1',
           [workspaceId],
         );
 
         const workspaceData =
-          workspaceRows.rows.length > 0
-            ? (workspaceRows.rows[0] as Pick<
-                WorkspaceProps,
-                "usage" | "usageLimit"
-              >)
+          workspaceRows.length > 0
+            ? (workspaceRows[0] as Pick<WorkspaceProps, "usage" | "usageLimit">)
             : null;
 
         const hasExceededUsageLimit =
@@ -318,31 +315,26 @@ async function sendLinkClickWebhooks({
     return;
   }
 
-  const link = await conn
-    .execute(
-      `
-    SELECT 
-      l.*,
-      JSON_ARRAYAGG(
-        IF(t.id IS NOT NULL,
-          JSON_OBJECT('tag', JSON_OBJECT('id', t.id, 'name', t.name, 'color', t.color)),
-          NULL
-        )
-      ) as tags
-    FROM Link l
-    LEFT JOIN LinkTag lt ON l.id = lt.linkId
-    LEFT JOIN Tag t ON lt.tagId = t.id
-    WHERE l.id = ?
-    GROUP BY l.id
-  `,
-      [linkId],
-    )
-    .then((res) => {
-      const row = res.rows[0] as any;
-      // Handle case where there are no tags (JSON_ARRAYAGG returns [null])
-      row.tags = row.tags?.[0] === null ? [] : row.tags;
-      return row;
-    });
+  const link = await conn(
+    `
+      SELECT 
+        l.*,
+        COALESCE(json_agg(
+          json_build_object('tag', json_build_object('id', t.id, 'name', t.name, 'color', t.color))
+        ) FILTER (WHERE t.id IS NOT NULL), '[]'::json) as tags
+      FROM "Link" l
+      LEFT JOIN "LinkTag" lt ON l.id = lt."linkId"
+      LEFT JOIN "Tag" t ON lt."tagId" = t.id
+      WHERE l.id = $1
+      GROUP BY l.id
+    `,
+    [linkId],
+  ).then((rows) => {
+    const row = rows[0] as any;
+    // Handle case where there are no tags (json_agg returns [null])
+    row.tags = row.tags?.[0] === null ? [] : row.tags;
+    return row;
+  });
 
   await sendWebhooks({
     trigger: "link.clicked",

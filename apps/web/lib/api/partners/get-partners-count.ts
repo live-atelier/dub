@@ -1,5 +1,5 @@
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
@@ -28,9 +28,11 @@ export async function getPartnersCount<T>(
         ? search.includes("@")
           ? { email: search }
           : {
-              email: { search: sanitizeFullTextSearch(search) },
-              name: { search: sanitizeFullTextSearch(search) },
-              companyName: { search: sanitizeFullTextSearch(search) },
+              OR: [
+                { email: { contains: search, mode: "insensitive" as const } },
+                { name: { contains: search, mode: "insensitive" as const } },
+                { companyName: { contains: search, mode: "insensitive" as const } },
+              ],
             }
         : {}),
     ...(partnerIds && {

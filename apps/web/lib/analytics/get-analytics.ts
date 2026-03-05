@@ -60,20 +60,20 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const linkIdPlaceholders = normalizedLinkId.values.map(() => "?").join(",");
+    const linkIdPlaceholders = normalizedLinkId.values.map((_, i) => `$${i + 1}`).join(",");
     const aggregateColumns =
       event === "composite"
-        ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+        ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM("saleAmount") as "saleAmount"`
         : event === "sales"
-          ? `SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+          ? `SUM(sales) as sales, SUM("saleAmount") as "saleAmount"`
           : `SUM(${event}) as ${event}`;
 
-    const response = await conn.execute(
-      `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdPlaceholders})`,
+    const response = await conn(
+      `SELECT ${aggregateColumns} FROM "Link" WHERE id IN (${linkIdPlaceholders})`,
       normalizedLinkId.values,
     );
 
-    return analyticsResponse["count"].parse(response.rows[0]);
+    return analyticsResponse["count"].parse(response[0]);
   }
 
   if (groupBy === "trigger") groupBy = "triggers";

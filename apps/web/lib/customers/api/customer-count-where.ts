@@ -1,5 +1,5 @@
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
-import { sanitizeFullTextSearch } from "@dub/prisma";
+
 import { Prisma } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
@@ -36,8 +36,10 @@ export function buildCustomerCountWhere(filters: CustomerCountFilters) {
           ? search.includes("@")
             ? { email: search }
             : {
-                email: { search: sanitizeFullTextSearch(search) },
-                name: { search: sanitizeFullTextSearch(search) },
+                OR: [
+                  { email: { contains: search, mode: "insensitive" as const } },
+                  { name: { contains: search, mode: "insensitive" as const } },
+                ],
               }
           : {}),
     // only filter by country if not grouping by country

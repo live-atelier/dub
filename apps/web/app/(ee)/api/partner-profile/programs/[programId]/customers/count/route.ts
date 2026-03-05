@@ -6,7 +6,7 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -55,8 +55,10 @@ export const GET = withPartnerProfile(
         ? search.includes("@")
           ? { email: search }
           : {
-              email: { search: sanitizeFullTextSearch(search) },
-              name: { search: sanitizeFullTextSearch(search) },
+              OR: [
+                { email: { contains: search, mode: "insensitive" as const } },
+                { name: { contains: search, mode: "insensitive" as const } },
+              ],
             }
         : {}),
     };

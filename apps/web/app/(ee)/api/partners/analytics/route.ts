@@ -125,7 +125,7 @@ export const GET = withWorkspace(
         { start: string; earnings: number }[]
       >`
     SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, '+00:00', ${timezone || "+00:00"}),  ${dateFormat}) AS start, 
+      to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone || "UTC"}, ${dateFormat}) AS start, 
       SUM(earnings) AS earnings
     FROM Commission
     WHERE 

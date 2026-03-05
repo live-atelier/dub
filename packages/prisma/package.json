@@ -14,8 +14,8 @@
     "format": "npx prisma format --schema=./schema"
   },
   "dependencies": {
-    "@planetscale/database": "1.19.0",
-    "@prisma/adapter-planetscale": "6.19.1",
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^7.4.2",
     "@prisma/client": "6.19.1"
   },
   "devDependencies": {

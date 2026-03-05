@@ -172,7 +172,7 @@ export async function calculatePartnerRanking({
       pe_all.partnerId,
       MAX(pe_all.lastConversionAt) as lastConversionAt,
       AVG(COALESCE(pe_all.clickToConversionRate, 0)) as avgConversionRate
-    FROM ProgramEnrollment pe_all FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
+    FROM ProgramEnrollment pe_all
     -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
     WHERE pe_all.partnerId IN (
       SELECT p_filter_all.id
@@ -221,7 +221,7 @@ export async function calculatePartnerRanking({
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
         LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore
-      FROM ProgramEnrollment pe2 FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
+      FROM ProgramEnrollment pe2
       -- OPTIMIZATION: Only process enrollments for discoverable partners (using subquery to avoid JOIN)
       WHERE pe2.partnerId IN (
         SELECT p_filter.id
@@ -293,8 +293,8 @@ export async function calculatePartnerRanking({
     LEFT JOIN (
       SELECT 
         pe5.partnerId,
-        GROUP_CONCAT(DISTINCT pc.category ORDER BY pc.category SEPARATOR ',') as categories
-      FROM ProgramEnrollment pe5 FORCE INDEX (ProgramEnrollment_partnerId_programId_key)
+        string_agg(DISTINCT pc.category, ',' ORDER BY pc.category) as categories
+      FROM ProgramEnrollment pe5
       JOIN ProgramCategory pc ON pc.programId = pe5.programId
       WHERE pe5.partnerId IN (
         SELECT p_cat.id
@@ -309,7 +309,7 @@ export async function calculatePartnerRanking({
     LEFT JOIN (
       SELECT 
         ppes.partnerId,
-        GROUP_CONCAT(DISTINCT ppes.preferredEarningStructure ORDER BY ppes.preferredEarningStructure SEPARATOR ',') as preferredEarningStructures
+        string_agg(DISTINCT ppes.preferredEarningStructure, ',' ORDER BY ppes.preferredEarningStructure) as preferredEarningStructures
       FROM PartnerPreferredEarningStructure ppes
       WHERE ppes.partnerId IN (
         SELECT p_filter.id
@@ -323,7 +323,7 @@ export async function calculatePartnerRanking({
     LEFT JOIN (
       SELECT 
         psc.partnerId,
-        GROUP_CONCAT(DISTINCT psc.salesChannel ORDER BY psc.salesChannel SEPARATOR ',') as salesChannels
+        string_agg(DISTINCT psc.salesChannel, ',' ORDER BY psc.salesChannel) as salesChannels
       FROM PartnerSalesChannel psc
       WHERE psc.partnerId IN (
         SELECT p_filter.id
@@ -337,8 +337,8 @@ export async function calculatePartnerRanking({
     LEFT JOIN (
       SELECT 
         pp.partnerId,
-        JSON_ARRAYAGG(
-          JSON_OBJECT(
+        json_agg(
+          json_build_object(
             'partnerId', pp.partnerId,
             'type', pp.type,
             'identifier', pp.identifier,
@@ -374,7 +374,7 @@ export async function calculatePartnerRanking({
             : partner.platforms;
 
         // Transform platforms to match Prisma types
-        // MySQL JSON returns BigInt as numbers and DateTime as strings
+        // PostgreSQL JSON returns BigInt as numbers and DateTime as strings
         platforms = (Array.isArray(parsedPlatforms) ? parsedPlatforms : []).map(
           (platform: any) => ({
             ...platform,

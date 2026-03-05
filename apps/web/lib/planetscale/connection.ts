@@ -1,5 +1,3 @@
-import { connect } from "@planetscale/database";
+import { neon } from "@neondatabase/serverless";
 
-export const conn = connect({
-  url: process.env.PLANETSCALE_DATABASE_URL || process.env.DATABASE_URL,
-});
+export const conn = neon(process.env.DATABASE_URL!);

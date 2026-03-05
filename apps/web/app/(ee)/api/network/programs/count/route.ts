@@ -17,7 +17,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { groupBy, category, rewardType, status, featured, search } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);
 
-  const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
+  const searchSql = search ? Prisma.sql`'%' || ${search} || '%'` : null;
   const commonWhereSql = Prisma.sql`
     p.addedToMarketplaceAt IS NOT NULL
     AND EXISTS (

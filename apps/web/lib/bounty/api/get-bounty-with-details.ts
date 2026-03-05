@@ -29,13 +29,13 @@ export const getBountyWithDetails = async ({
       --  Bounty groups
       COALESCE(
         (
-          SELECT JSON_ARRAYAGG(
-            JSON_OBJECT('id', groupId)
+          SELECT json_agg(
+            json_build_object('id', "groupId")
           )
           FROM BountyGroup
           WHERE bountyId = b.id
         ),
-        JSON_ARRAY()
+        '[]'::json
       ) AS groups
 
     FROM Bounty b

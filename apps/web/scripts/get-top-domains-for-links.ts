@@ -5,7 +5,7 @@ import "dotenv-flow/config";
 async function main() {
   const topDomains = (await prisma.$queryRaw`
     SELECT 
-      SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(REPLACE(url, 'https://', ''), 'http://', ''), '/', 1), '?', 1) as domain,
+      split_part(split_part(REPLACE(REPLACE(url, 'https://', ''), 'http://', ''), '/', 1), '?', 1) as domain,
       COUNT(*) as count
     FROM Link
     WHERE 
@@ -14,7 +14,7 @@ async function main() {
       AND userId IS NOT NULL
       AND userId != ${LEGAL_USER_ID}
       AND url NOT LIKE 'https%3A%2F%2F%'
-    GROUP BY SUBSTRING_INDEX(SUBSTRING_INDEX(REPLACE(REPLACE(url, 'https://', ''), 'http://', ''), '/', 1), '?', 1)
+    GROUP BY split_part(split_part(REPLACE(REPLACE(url, 'https://', ''), 'http://', ''), '/', 1), '?', 1)
     HAVING count >= 5
     ORDER BY count DESC
   `) as { domain: string; count: number }[];

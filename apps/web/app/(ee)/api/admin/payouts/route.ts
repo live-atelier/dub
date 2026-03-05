@@ -93,7 +93,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     { date: Date; payouts: number; fees: number; total: number }[]
   >`
     SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat}) as date,
+      to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone}, ${dateFormat}) as date,
       SUM(amount) as payouts,
       SUM(fee) as fees,
       SUM(total) as total
@@ -103,7 +103,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
       AND createdAt >= ${startDate}
       AND createdAt <= ${endDate}
-    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
+    GROUP BY to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone}, ${dateFormat})
     ORDER BY date ASC;
   `;
 

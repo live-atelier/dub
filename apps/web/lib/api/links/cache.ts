@@ -88,14 +88,14 @@ class LinkCache {
         linkLRUCache.set(cacheKey, cachedLink);
       } else {
         console.log(
-          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
+          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to PostgreSQL...`,
         );
       }
 
       return cachedLink;
     } catch (error) {
       console.error(
-        "[LinkCache] – Timeout getting cached link from Redis, falling back to MySQL...",
+        "[LinkCache] – Timeout getting cached link from Redis, falling back to PostgreSQL...",
         error,
       );
 

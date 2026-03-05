@@ -20,6 +20,6 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export const sanitizeFullTextSearch = (search: string) => {
-  // remove unsupported characters for full text search
-  return search.replace(/[*+\-()~@%<>!=?:]/g, "").trim();
+  // Escape ILIKE special characters and trim whitespace (PostgreSQL)
+  return search.replace(/[%_]/g, "\\$&").trim();
 };

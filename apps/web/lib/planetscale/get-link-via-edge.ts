@@ -19,14 +19,14 @@ export const getLinkViaEdge = async ({
     ? // for case sensitive domains, we need to encode the key
       encodeKey(key)
     : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
-      // (cause that's how we store it in MySQL)
+      // (cause that's how we store it in the database)
       punyEncode(decodeURIComponent(key));
 
-  const { rows } =
-    (await conn.execute("SELECT * FROM Link WHERE domain = ? AND `key` = ?", [
+  const rows =
+    (await conn('SELECT * FROM "Link" WHERE domain = $1 AND "key" = $2', [
       domain,
       keyToQuery,
-    ])) || {};
+    ])) || [];
 
   const link =
     rows && Array.isArray(rows) && rows.length > 0

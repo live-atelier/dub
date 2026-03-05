@@ -1,5 +1,5 @@
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
 type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
@@ -46,8 +46,10 @@ export async function getCustomers(filters: GetCustomersInput) {
             ? search.includes("@")
               ? { email: search }
               : {
-                  email: { search: sanitizeFullTextSearch(search) },
-                  name: { search: sanitizeFullTextSearch(search) },
+                  OR: [
+                    { email: { contains: search, mode: "insensitive" as const } },
+                    { name: { contains: search, mode: "insensitive" as const } },
+                  ],
                 }
             : {}),
       ...(country && {

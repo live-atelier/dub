@@ -58,7 +58,7 @@ export async function getPartnerEarningsTimeseries({
     }[]
   >`
         SELECT 
-          DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
+          to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone || "UTC"}, ${dateFormat}) AS start, 
           ${groupBy ? (groupBy === "type" ? Prisma.sql`type,` : Prisma.sql`linkId,`) : Prisma.sql``}
           SUM(earnings) AS earnings
         FROM Commission

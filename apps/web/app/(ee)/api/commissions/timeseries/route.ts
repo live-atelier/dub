@@ -47,7 +47,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   console.time("getCommissionsTimeseries");
   const commissions = await prisma.$queryRaw<Commission[]>`
       SELECT 
-        DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
+        to_char("createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timezone || "UTC"}, ${dateFormat}) AS start, 
         SUM(earnings) AS earnings
       FROM Commission
       WHERE 

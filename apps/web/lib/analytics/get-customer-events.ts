@@ -35,7 +35,7 @@ export const getCustomerEvents = async ({
 
       const eventData = {
         ...evt,
-        // use link domain & key from mysql instead of tinybird
+        // use link domain & key from postgresql instead of tinybird
         domain: link.domain,
         key: link.key,
         // timestamp is always in UTC
